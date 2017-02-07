@@ -239,7 +239,7 @@ class ScholarConf(object):
     """Helper class for global settings."""
 
     VERSION = '2.10'
-    LOG_LEVEL = 1
+    LOG_LEVEL = 4
     MAX_PAGE_RESULTS = 10 # Current default for per-page results
     SCHOLAR_SITE = 'http://scholar.google.com'
 
@@ -1025,6 +1025,7 @@ class ScholarQuerier(object):
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
         if html is None:
+            print 'html is None'
             return
 
         self.parse(html)
