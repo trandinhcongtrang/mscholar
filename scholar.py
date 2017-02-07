@@ -1020,6 +1020,7 @@ class ScholarQuerier(object):
         self.clear_articles()
         self.query = query
 
+        print 'query url = %s' % query.get_url()
         html = self._get_http_response(url=query.get_url(),
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
