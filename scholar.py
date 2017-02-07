@@ -250,7 +250,8 @@ class ScholarConf(object):
 
     # If set, we will use this file to read/save cookies to enable
     # cookie use across sessions.
-    COOKIE_JAR_FILE = None
+    # COOKIE_JAR_FILE = None
+    COOKIE_JAR_FILE = "cookies.txt"
 
 class ScholarUtils(object):
     """A wrapper for various utensils that come in handy."""
