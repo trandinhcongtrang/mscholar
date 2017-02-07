@@ -1276,8 +1276,8 @@ class ScholarQuerier(object):
         try:
             ScholarUtils.log('info', 'requesting %s' % unquote(url))
 
-            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
-            #req = Request(url=url, headers={'User-Agent': USER_AGENT_LIST[randint(0, len(USER_AGENT_LIST))-1]})
+            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT,
+                                            'Cookie' : 'GSP=IN=7e6cc990821af63:LD=en:CF=4:LM=1486458217:S=8Zd4Xsi_n_AmqYr6'})
             hdl = self.opener.open(req)
             html = hdl.read()
 
