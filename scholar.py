@@ -241,7 +241,7 @@ class ScholarConf(object):
     VERSION = '2.10'
     LOG_LEVEL = 4
     MAX_PAGE_RESULTS = 10 # Current default for per-page results
-    SCHOLAR_SITE = 'http://scholar.google.com'
+    SCHOLAR_SITE = 'https://scholar.google.com'
 
     # USER_AGENT = 'Mozilla/5.0 (X11; U; FreeBSD i386; en-US; rv:1.9.2.9) Gecko/20100913 Firefox/3.6.9'
     # Let's update at this point (3/14):
@@ -513,7 +513,7 @@ class ScholarArticleParser(object):
 
     def _path2url(self, path):
         """Helper, returns full URL in case path isn't one."""
-        if path.startswith('http://'):
+        if path.startswith('https://'):
             return path
         if not path.startswith('/'):
             path = '/' + path
@@ -1020,7 +1020,6 @@ class ScholarQuerier(object):
         self.clear_articles()
         self.query = query
 
-        print 'query url = %s' % query.get_url()
         html = self._get_http_response(url=query.get_url(),
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
