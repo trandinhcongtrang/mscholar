@@ -1022,7 +1022,6 @@ class ScholarQuerier(object):
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
         if html is None:
-            print 'html is None'
             return
 
         self.parse(html)
@@ -1234,6 +1233,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         return 0
 
     if options.cookie_file:
+        ScholarUtils.log('debug', 'cookie_file = %s' % options.cookie_file)
         ScholarConf.COOKIE_JAR_FILE = options.cookie_file
 
     # Sanity-check the options: if they include a cluster ID query, it
