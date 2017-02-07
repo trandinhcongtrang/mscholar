@@ -250,8 +250,8 @@ class ScholarConf(object):
 
     # If set, we will use this file to read/save cookies to enable
     # cookie use across sessions.
-    # COOKIE_JAR_FILE = None
-    COOKIE_JAR_FILE = "cookies.txt"
+    COOKIE_JAR_FILE = None
+    # COOKIE_JAR_FILE = "cookies.txt"
 
 class ScholarUtils(object):
     """A wrapper for various utensils that come in handy."""
@@ -1090,7 +1090,8 @@ class ScholarQuerier(object):
         try:
             ScholarUtils.log('info', 'requesting %s' % unquote(url))
 
-            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
+            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT,
+                                            'Cookie' : 'GSP=IN=7e6cc990821af63:LD=en:CF=4:LM=1486458217:S=8Zd4Xsi_n_AmqYr6'})
             hdl = self.opener.open(req)
             html = hdl.read()
 
