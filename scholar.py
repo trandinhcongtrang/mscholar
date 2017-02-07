@@ -963,6 +963,7 @@ class ScholarQuerier(object):
         """
         Applies settings as provided by a ScholarSettings instance.
         """
+        """
         if settings is None or not settings.is_configured():
             return True
 
@@ -1007,7 +1008,7 @@ class ScholarQuerier(object):
                                        err_msg='applying setttings failed')
         if html is None:
             return False
-
+        """
         ScholarUtils.log('info', 'settings applied')
         return True
 
