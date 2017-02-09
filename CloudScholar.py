@@ -478,7 +478,7 @@ class ScholarArticleParser(object):
     def is_captcha(self, html):
         soup = SoupKitchen.make_soup(html)
         if soup is not None:
-            return soup.find("input", id="captcha")
+            return soup.find("input", id="captcha") or soup.find("form", id="gs_captcha_f")
 
     def _clean_article(self):
         """
