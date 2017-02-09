@@ -1153,7 +1153,7 @@ def citation_export(querier):
         print(art.as_citation() + '\n')
 
 # Own customized functions
-def CloudScholarInit(self, data):
+def CloudScholarInit(data):
     # Create Storage
     os.system('mkdir -p storage')
     # load configuration
