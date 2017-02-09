@@ -167,6 +167,11 @@ import re
 import sys
 import warnings
 
+from random import randint
+from time import sleep
+import json
+import bibtexparser
+
 try:
     # Try importing for Python 3
     # pylint: disable-msg=F0401
@@ -1179,7 +1184,7 @@ def CloudScholarInit(data):
     return (ScholarConf.CONFIG, ScholarConf.INPUT,
         ScholarConf.ARTICLES, ScholarConf.BIBTEX, ScholarConf.AUTHORS)
 
-def CloudScholarClose(self):
+def CloudScholarClose():
     with open('config.txt', 'w') as cfg:
         json.dump(ScholarConf.CONFIG, cfg)
     ScholarConf.INPUT.close()
