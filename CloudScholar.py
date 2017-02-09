@@ -1320,7 +1320,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     for i, line in enumerate(FileInput):
         if (i < config['skip']):
             continue
-        print '%06d/%06d (%10f\%)\t %s' % (i,lines,(float(i)/lines), line)
+        print '%06d/%06d (%10f%%)\t %s' % (i,lines,(float(i)/lines), line)
 
         words = line.split('|')
 
