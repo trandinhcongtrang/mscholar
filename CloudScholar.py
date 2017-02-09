@@ -1314,8 +1314,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     ACTION_SKIP = 2
     print 'Skip to line %d' % config['skip']
     # ---------------------
-    lines = sum(1 for line in FileInput)
-    print "lines = %d" % lines
+    #lines = sum(1 for line in FileInput)
+    #print "lines = %d" % lines
 
     for i, line in enumerate(FileInput):
         print i
