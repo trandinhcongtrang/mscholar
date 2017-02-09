@@ -1462,6 +1462,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 saved['words'] = words
                 saved['article'] = None
                 saved['action'] = ACTION_SKIP
+                continue
         if article.citation_data is not '':
             article_data = article.as_myformat()
             FileArticles.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
