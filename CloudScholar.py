@@ -367,6 +367,67 @@ class ScholarArticle(object):
         citation export format. (See ScholarSettings.)
         """
         return self.citation_data or ''
+    
+    def as_myformat(self):
+        data = self.citation_data
+        if data:
+            try:
+                bt = bibtexparser.loads(data)
+                # bt = parse_string(data)
+                # article | title | author| journal| volume
+                article = bt.entries[0]
+                #idart       = article.get('ID', '')
+                title       = article.get('title', '')
+                #author      = article.get('author', '')
+                journal     = article.get('journal', '')
+                year        = article.get('year', '')
+                publisher   = article.get('publisher', '')
+                cited_by    = self['num_citations']
+                #item = '%s| %s| %s | %s| %s | %s' % (idart, title, author, journal, year, publisher)
+                item = '%s|%s|%s|%s|%s' % (title, journal, publisher, year, cited_by)
+                return item.encode('utf-8')
+            except Exception as e:
+                print e
+                return None
+            # unicode(your_object).encode('utf8')
+        else:
+            return ''
+
+    def as_attr(self, attr):
+        data = self.citation_data
+        if data:
+            try:
+                bt = bibtexparser.loads(data)
+                # bt = parse_string(data)
+                # article | title | author| journal| volume
+                article = bt.entries[0]
+                #idart       = article.get('ID', '')
+                #title       = article.get('title', '')
+                #author      = article.get('author', '')
+                #journal     = article.get('journal', '')
+                #year        = article.get('year', '')
+                #publisher   = article.get('publisher', '')
+                #item = '%s| %s| %s | %s| %s | %s' % (idart, title, author, journal, year, publisher)
+                #item = '%s|%s|%s|%s' % (title, journal, publisher, year)
+                item = article.get(attr, '')
+                return item.encode('utf-8')
+            except Exception:
+                return ''
+            # unicode(your_object).encode('utf8')
+        else:
+            return ''
+
+    def as_article(self):
+        if self.citation_data:
+            try:
+                #bt = parse_string(self.citation_data)
+                bt = bibtexparser.loads(self.citation_data)
+                return bt.entries[0].get('ID', '')
+            except IndexError:
+                # captcha
+                sys.exit(1)
+        else:
+            return ''
 
 
 class ScholarArticleParser(object):
@@ -1179,11 +1240,7 @@ def CloudScholarInit(data, skip):
     ScholarConf.AUTHORS = open("authors.csv", "a")
 
     # Load Cookie from database to cookies.txt
-    os.system('echo "select host, \
-        case when host glob\'.*\' then \'TRUE\' else \'FALSE\' end, path, \
-        case when isSecure then \'TRUE\' else \'FALSE\' end, expiry, name, value from moz_cookies;" \
-        | sqlite3 -separator $\'\\t\' ~/.mozilla/firefox/*.default/cookies.sqlite > cookies.entries \
-        && cat cookies.template cookies.entries > cookies.txt')
+    os.system('./get_cookies.sh')
 
     return (ScholarConf.CONFIG, ScholarConf.INPUT,
         ScholarConf.ARTICLES, ScholarConf.BIBTEX, ScholarConf.AUTHORS)
@@ -1197,9 +1254,11 @@ def CloudScholarClose():
     ScholarConf.BIBTEX.close()
 
 def ConfigIncrease(incr):
+    print 'ConfigIncrease %d' % incr
     ScholarConf.CONFIG['skip'] += incr
     with open('config.txt', 'w') as cfg:
         json.dump(ScholarConf.CONFIG, cfg)
+
 
 def main():
     usage = """scholar.py [options] <query string>
@@ -1322,9 +1381,10 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     FileInput.seek(0, 0)
 
     for i, line in enumerate(FileInput):
+        print 'i = %d, skip = %d' %(i, config['skip'])
         if (i < config['skip']):
             continue
-        print '%06d/%06d (%10f%%)\t' % (i,lines,(float(i+1)/lines)*100)
+        print 'line %d/%d (%6f%%)\t' % (i,lines,(float(i+1)/lines)*100)
         words = line.split('|')
 
         if ((saved['words'] is not None) and (saved['words'][2] == words[2])):
@@ -1344,7 +1404,9 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
             try:
                 title_regex = re.search("\'(.+?)\'", words[4])
                 if title_regex is None:
+                    print 'title_regex is None'
                     ConfigIncrease(1)
+                    continue
                 title = title_regex.group(0).lstrip("\'").rstrip("\'")
                 print 'title \'%s\'' % (title)
 
@@ -1379,7 +1441,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     break
                 with open('./storage/%s.bixtex' % words[2], 'w') as f:
                     f.write(bibtex)
-                ConfigIncrease(1)
                 article.set_citation_data(bibtex)
 
             except Exception as ecp:
@@ -1390,17 +1451,18 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 saved['action'] = ACTION_SKIP
         if article.citation_data is not '':
             article_data = article.as_myformat()
-            print article_data
-            #FileInput.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
-            #authors = article.as_attr("author").split(" and ")
-            #for aut in authors:
-            #    fd_authors.write("%s|%s\n" % (words[2], aut))
+            FileArticles.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
+            authors = article.as_attr("author").split(" and ")
+            for aut in authors:
+                FileAuthors.write("%s|%s\n" % (words[2], aut))
             
-            #fd_articles_bibtex.write(article.as_citation() + '\n--\n')
+            FileBibtex.write(article.as_citation() + '\n--\n')
             ConfigIncrease(1)
         else:
             print 'no citation data, exit check captcha'
-
+        saved['words'] = words
+        saved['article'] = article
+        saved['action'] = ACTION_SAVE
 
     CloudScholarClose()
     if options.cookie_file or ScholarConf.COOKIE_JAR_FILE:

@@ -1,0 +1,1 @@
+echo "select host, case when host glob '.*' then 'TRUE' else 'FALSE' end, path, case when isSecure then 'TRUE' else 'FALSE' end, expiry, name, value from moz_cookies;" | sqlite3 -separator $'\t' ~/.mozilla/firefox/*.default/cookies.sqlite > cookies.entries && cat cookies.template cookies.entries > cookies.txt
