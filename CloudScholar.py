@@ -1169,7 +1169,7 @@ def CloudScholarInit(data, skip):
             with open('config.txt', 'r') as cfg:
                 ScholarConf.CONFIG = json.load(cfg)
         except (IOError, ValueError) as e:
-            ScholarConf.CONFIG = {'skip': 0, 'start': 0}
+            ScholarConf.CONFIG = {'skip': 1, 'start': 0}
             with open('config.txt', 'w') as cfg:
                 json.dump(ScholarConf.CONFIG, cfg)
     ScholarConf.INPUT = open(data)
@@ -1316,8 +1316,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     lines = sum(1 for line in FileInput)
 
     for i, line in enumerate(FileInput):
-        if (i < config['skip']):
-            continue
+        #if (i < config['skip']):
+        #    continue
 
         words = line.split('|')
 
