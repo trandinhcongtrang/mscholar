@@ -1179,9 +1179,9 @@ def CloudScholarInit(data, skip):
 
     # Load Cookie from database to cookies.txt
     os.system('echo "select host, \
-        case when host glob\'.*\' \then \'TRUE\' else \'FALSE\' end, path, \
+        case when host glob\'.*\' then \'TRUE\' else \'FALSE\' end, path, \
         case when isSecure then \'TRUE\' else \'FALSE\' end, expiry, name, value from moz_cookies;" \
-        | sqlite3 -separator $\'\t\' ~/.mozilla/firefox/*.default/cookies.sqlite > cookies.entries \
+        | sqlite3 -separator $\'\\t\' ~/.mozilla/firefox/*.default/cookies.sqlite > cookies.entries \
         && cat cookies.template cookies.entries > cookies.txt')
 
     return (ScholarConf.CONFIG, ScholarConf.INPUT,
