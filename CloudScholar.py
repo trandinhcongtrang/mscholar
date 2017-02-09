@@ -475,6 +475,11 @@ class ScholarArticleParser(object):
             if self.article['title']:
                 self.handle_article(self.article)
 
+    def is_captcha(self, html):
+        soup = SoupKitchen.make_soup(html)
+        if soup is not None:
+            return soup.find("input", id="captcha")
+
     def _clean_article(self):
         """
         This gets invoked after we have parsed an article, to do any
@@ -1129,6 +1134,10 @@ class ScholarQuerier(object):
         parser = self.Parser(self)
         parser.parse(html)
 
+    def is_captcha(self, html):
+        parser = self.Parser(self)
+        return parser.is_captcha(html)
+
     def add_article(self, art):
         # self.get_citation_data(art)
         self.articles.append(art)
@@ -1419,6 +1428,10 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         f.write(html)
                     querier.parse(html)
 
+                if querier.is_captcha(html) is not None:
+                    print 'Got CAPTCHA, line %d' % i
+                    print 'URL \'%s\'' % query.get_url()
+                    sys.exit(1)
                 # Parse articles
                 num_articles = len(querier.articles)
                 if num_articles > 5:
@@ -1440,10 +1453,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 with open('./storage/%s.bibtex' % words[2], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
-            except IndexError:
-                    print 'Got CAPTCHA, line %d' % i
-                    print 'URL \'%s\'' % query.get_url()
-                    sys.exit(1)
             except Exception as ecp:
                 print ecp
                 ConfigIncrease(1)
