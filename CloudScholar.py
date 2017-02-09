@@ -1053,11 +1053,11 @@ class ScholarQuerier(object):
         data = self._get_http_response(url=article['url_citation'],
                                        log_msg='citation data response',
                                        err_msg='requesting citation data failed')
-        if data is None:
-            return False
+        #if data is None:
+        #    return False
 
-        article.set_citation_data(data)
-        return True
+        #article.set_citation_data(data)
+        return data
 
     def parse(self, html):
         """
@@ -1312,7 +1312,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     query = SearchScholarQuery()
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
     (config, FileInput, FileArticles, FileBibtex, FileAuthors) = CloudScholarInit(options.input, options.skip)
-    print FileInput
     # ---------------------
     saved = {'words': None, 'article': None, 'action': 0}
     ACTION_SAVE = 1
@@ -1325,26 +1324,82 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     for i, line in enumerate(FileInput):
         if (i < config['skip']):
             continue
-        print '%06d/%06d (%10f%%)\t %s' % (i,lines,(float(i)/lines))
+        print '%06d/%06d (%10f%%)\t' % (i,lines,(float(i+1)/lines)*100)
+        words = line.split('|')
 
-        try:
-            words = line.split('|')
-            title_regex = re.search("\'(.+?)\'", words[4])
-            title = title_regex.group(0).lstrip("\'").rstrip("\'")
-            print 'title \'%s\'' % (title)
+        if ((saved['words'] is not None) and (saved['words'][2] == words[2])):
+            if saved['action'] == ACTION_SAVE:
+                print 'Action: SAVE. This keyword already has data.'
+                article = saved['article']
+            elif saved['action'] == ACTION_SKIP:
+                print 'Action: SKIP. This keyword has 0 result.'
+                ConfigIncrease(1)
+                continue
+            else :
+                print 'Action: Unknown. Reset saved data.'
+                saved['words'] = None
+                saved['article'] = None
+                saved['action'] = 0
+        else:
+            try:
+                title_regex = re.search("\'(.+?)\'", words[4])
+                if title_regex is None:
+                    ConfigIncrease(1)
+                title = title_regex.group(0).lstrip("\'").rstrip("\'")
+                print 'title \'%s\'' % (title)
 
-            query.set_words(title)
-            html = querier.send_query(query)
-            if html is None:
-                print 'Got CAPTCHA, line %d' % i
-                print 'URL \'%s\'' % query.get_url()
-                sys.exit(1)
-        except Exception as ecp:
-            print ecp
+                query.set_words(title)
+                html = querier.send_query(query)
+                if html is None:
+                    print 'Got CAPTCHA, line %d' % i
+                    print 'URL \'%s\'' % query.get_url()
+                    sys.exit(1)
+                else:
+                    with open('./storage/%s.html' % words[2], 'w') as f:
+                        f.write(html)
+                    querier.parse(html)
+
+                # Parse articles
+                num_articles = len(querier.articles)
+                if num_articles > 5:
+                    print 'skip this item %d %s' % (len(querier.articles), 'unlikely correct title')
+                    saved['words'] = words
+                    saved['article'] = None
+                    saved['action'] = ACTION_SKIP
+                    ConfigIncrease(1)
+                    continue
+                article = querier.articles[0]
+                if article['url_citation'] is None:
+                    print 'url_citation is None, check settings & Cookie'
+                    break
+                bibtex = querier.get_citation_data(article)
+                if bibtex is None:
+                    print 'Got CAPTCHA, line %d' % i
+                    print 'URL \'%s\'' % article['url_citation']
+                    break
+                with open('./storage/%s.bixtex' % words[2], 'w') as f:
+                    f.write(bibtex)
+                ConfigIncrease(1)
+                article.set_citation_data(bibtex)
+
+            except Exception as ecp:
+                print ecp
+                ConfigIncrease(1)
+                saved['words'] = words
+                saved['article'] = None
+                saved['action'] = ACTION_SKIP
+        if article.citation_data is not '':
+            article_data = article.as_myformat()
+            print article_data
+            #FileInput.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
+            #authors = article.as_attr("author").split(" and ")
+            #for aut in authors:
+            #    fd_authors.write("%s|%s\n" % (words[2], aut))
+            
+            #fd_articles_bibtex.write(article.as_citation() + '\n--\n')
             ConfigIncrease(1)
-            saved['words'] = words
-            saved['article'] = None
-            saved['action'] = ACTION_SKIP
+        else:
+            print 'no citation data, exit check captcha'
 
 
     CloudScholarClose()
