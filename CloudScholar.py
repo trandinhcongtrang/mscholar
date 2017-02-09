@@ -244,7 +244,7 @@ class ScholarConf(object):
     """Helper class for global settings."""
 
     VERSION = '2.10'
-    LOG_LEVEL = 3
+    LOG_LEVEL = 1
     MAX_PAGE_RESULTS = 10 # Current default for per-page results
     SCHOLAR_SITE = 'https://scholar.google.com'
 
