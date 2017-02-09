@@ -1,0 +1,1 @@
+./get_cookies.sh && ./CloudScholar.py -f INPUT_FILE
