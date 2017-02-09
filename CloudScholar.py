@@ -1304,8 +1304,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     querier.apply_settings(settings)
 
     query = SearchScholarQuery()
-    query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS, options.skip)
-    (config, FileInput, FileArticles, FileBibtex, FileAuthors)= CloudScholarInit(options.input)
+    query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
+    (config, FileInput, FileArticles, FileBibtex, FileAuthors) = CloudScholarInit(options.input, , options.skip)
 
     # ---------------------
     saved = {'words': None, 'article': None, 'action': 0}
