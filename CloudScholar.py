@@ -1438,7 +1438,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     print 'Got CAPTCHA, line %d' % i
                     print 'URL \'%s\'' % article['url_citation']
                     break
-                with open('./storage/%s.bixtex' % words[2], 'w') as f:
+                with open('./storage/%s.bibtex' % words[2], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
 
