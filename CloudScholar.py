@@ -1172,6 +1172,7 @@ def CloudScholarInit(data, skip):
             ScholarConf.CONFIG = {'skip': 1, 'start': 0}
             with open('config.txt', 'w') as cfg:
                 json.dump(ScholarConf.CONFIG, cfg)
+    print "Opening %s as input file" % data
     ScholarConf.INPUT = open(data)
     ScholarConf.ARTICLES = open("articles.csv", "a")
     ScholarConf.BIBTEX = open("articles_bibtex.txt", "a")
@@ -1306,7 +1307,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     query = SearchScholarQuery()
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
     (config, FileInput, FileArticles, FileBibtex, FileAuthors) = CloudScholarInit(options.input, options.skip)
-
+    print FileInput
     # ---------------------
     saved = {'words': None, 'article': None, 'action': 0}
     ACTION_SAVE = 1
@@ -1318,12 +1319,13 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     for i, line in enumerate(FileInput):
         #if (i < config['skip']):
         #    continue
+        print '%06d/%06d (%10f\%)\t %s' % (i,lines,(float(i)/lines), line)
 
-        words = line.split('|')
+        #words = line.split('|')
 
-        title_regex = re.search("\'(.+?)\'", words[4])
-        title = title_regex.group(0).lstrip("\'").rstrip("\'")
-        print 'line %d - \'%s\'' % (i,title)
+        #title_regex = re.search("\'(.+?)\'", words[4])
+        #title = title_regex.group(0).lstrip("\'").rstrip("\'")
+        #print 'line %d - \'%s\'' % (i,title)
 
 
     CloudScholarClose()
