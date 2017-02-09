@@ -244,14 +244,14 @@ class ScholarConf(object):
     """Helper class for global settings."""
 
     VERSION = '2.10'
-    LOG_LEVEL = 0
+    LOG_LEVEL = 3
     MAX_PAGE_RESULTS = 10 # Current default for per-page results
     SCHOLAR_SITE = 'https://scholar.google.com'
 
     # USER_AGENT = 'Mozilla/5.0 (X11; U; FreeBSD i386; en-US; rv:1.9.2.9) Gecko/20100913 Firefox/3.6.9'
     # Let's update at this point (3/14):
-    USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'
-
+    # USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'
+    USER_AGENT ='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'
 
     # If set, we will use this file to read/save cookies to enable
     # cookie use across sessions.
@@ -1162,8 +1162,7 @@ class ScholarQuerier(object):
         try:
             ScholarUtils.log('info', 'requesting %s' % unquote(url))
 
-            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT,
-                                            'Cookie' : 'GSP=IN=7e6cc990821af63:LD=en:CF=4'})
+            req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
             hdl = self.opener.open(req)
             html = hdl.read()
 
@@ -1240,7 +1239,7 @@ def CloudScholarInit(data, skip):
     ScholarConf.AUTHORS = open("authors.csv", "a")
 
     # Load Cookie from database to cookies.txt
-    os.system('./get_cookies.sh')
+    # os.system('./get_cookies.sh')
 
     return (ScholarConf.CONFIG, ScholarConf.INPUT,
         ScholarConf.ARTICLES, ScholarConf.BIBTEX, ScholarConf.AUTHORS)
@@ -1254,7 +1253,6 @@ def CloudScholarClose():
     ScholarConf.BIBTEX.close()
 
 def ConfigIncrease(incr):
-    print 'ConfigIncrease %d' % incr
     ScholarConf.CONFIG['skip'] += incr
     with open('config.txt', 'w') as cfg:
         json.dump(ScholarConf.CONFIG, cfg)
@@ -1381,7 +1379,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     FileInput.seek(0, 0)
 
     for i, line in enumerate(FileInput):
-        print 'i = %d, skip = %d' %(i, config['skip'])
         if (i < config['skip']):
             continue
         print 'line %d/%d (%6f%%)\t' % (i,lines,(float(i+1)/lines)*100)
