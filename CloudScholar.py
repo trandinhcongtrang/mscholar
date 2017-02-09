@@ -1158,17 +1158,20 @@ def citation_export(querier):
         print(art.as_citation() + '\n')
 
 # Own customized functions
-def CloudScholarInit(data):
+def CloudScholarInit(data, skip):
     # Create Storage
     os.system('mkdir -p storage')
     # load configuration
-    try:
-        with open('config.txt', 'r') as cfg:
-            ScholarConf.CONFIG = json.load(cfg)
-    except (IOError, ValueError) as e:
-        ScholarConf.CONFIG = {'skip': 0, 'start': 0}
-        with open('config.txt', 'w') as cfg:
-            json.dump(ScholarConf.CONFIG, cfg)
+    if skip is not None:
+        ScholarConf.CONFIG = {'skip': skip, 'start': 0}
+    else:
+        try:
+            with open('config.txt', 'r') as cfg:
+                ScholarConf.CONFIG = json.load(cfg)
+        except (IOError, ValueError) as e:
+            ScholarConf.CONFIG = {'skip': 0, 'start': 0}
+            with open('config.txt', 'w') as cfg:
+                json.dump(ScholarConf.CONFIG, cfg)
     ScholarConf.INPUT = open(data)
     ScholarConf.ARTICLES = open("articles.csv", "a")
     ScholarConf.BIBTEX = open("articles_bibtex.txt", "a")
@@ -1295,16 +1298,13 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         ScholarUtils.log('debug', 'cookie_file = %s' % options.cookie_file)
         ScholarConf.COOKIE_JAR_FILE = options.cookie_file
 
-    if options.skip is None:
-        options.skip = 0
-
     querier = ScholarQuerier()
     settings = ScholarSettings()
     settings.set_citation_format(ScholarSettings.CITFORM_BIBTEX)
     querier.apply_settings(settings)
 
     query = SearchScholarQuery()
-    query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
+    query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS, options.skip)
     (config, FileInput, FileArticles, FileBibtex, FileAuthors)= CloudScholarInit(options.input)
 
     # ---------------------
@@ -1314,7 +1314,17 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     print 'Skip to line %d' % config['skip']
     # ---------------------
     lines = sum(1 for line in FileInput)
-    print 'Number of lines = %d' % lines
+
+    for i, line in enumerate(FileInput):
+        if (i < config['skip']):
+            continue
+
+        words = line.split('|')
+
+        title_regex = re.search("\'(.+?)\'", words[4])
+        title = title_regex.group(0).lstrip("\'").rstrip("\'")
+        print 'line %d - \'%s\'' % (i,title)
+
 
     CloudScholarClose()
     if options.cookie_file or ScholarConf.COOKIE_JAR_FILE:
