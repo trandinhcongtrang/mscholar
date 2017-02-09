@@ -1314,20 +1314,19 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     ACTION_SKIP = 2
     print 'Skip to line %d' % config['skip']
     # ---------------------
-    #lines = sum(1 for line in FileInput)
-    #print "lines = %d" % lines
+    lines = sum(1 for line in FileInput)
+    FileInput.seek(0, 0)
 
     for i, line in enumerate(FileInput):
-        print i
-        #if (i < config['skip']):
-        #    continue
-        #print '%06d/%06d (%10f\%)\t %s' % (i,lines,(float(i)/lines), line)
+        if (i < config['skip']):
+            continue
+        print '%06d/%06d (%10f\%)\t %s' % (i,lines,(float(i)/lines), line)
 
-        #words = line.split('|')
+        words = line.split('|')
 
-        #title_regex = re.search("\'(.+?)\'", words[4])
-        #title = title_regex.group(0).lstrip("\'").rstrip("\'")
-        #print 'line %d - \'%s\'' % (i,title)
+        title_regex = re.search("\'(.+?)\'", words[4])
+        title = title_regex.group(0).lstrip("\'").rstrip("\'")
+        print 'line %d - \'%s\'' % (i,title)
 
 
     CloudScholarClose()
