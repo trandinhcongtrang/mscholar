@@ -1440,7 +1440,10 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 with open('./storage/%s.bibtex' % words[2], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
-
+            except IndexError:
+                    print 'Got CAPTCHA, line %d' % i
+                    print 'URL \'%s\'' % query.get_url()
+                    sys.exit(1)
             except Exception as ecp:
                 print ecp
                 ConfigIncrease(1)
