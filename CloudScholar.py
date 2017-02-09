@@ -1030,13 +1030,12 @@ class ScholarQuerier(object):
         self.clear_articles()
         self.query = query
 
+        sleep(randint(15,20))
         html = self._get_http_response(url=query.get_url(),
                                        log_msg='dump of query response HTML',
                                        err_msg='results retrieval failed')
-        if html is None:
-            return
-
-        self.parse(html)
+        return html
+        #self.parse(html)
 
     def get_citation_data(self, article):
         """
@@ -1050,6 +1049,7 @@ class ScholarQuerier(object):
             return True
 
         ScholarUtils.log('info', 'retrieving citation export data')
+        sleep(randint(2,5))
         data = self._get_http_response(url=article['url_citation'],
                                        log_msg='citation data response',
                                        err_msg='requesting citation data failed')
@@ -1067,7 +1067,7 @@ class ScholarQuerier(object):
         parser.parse(html)
 
     def add_article(self, art):
-        self.get_citation_data(art)
+        # self.get_citation_data(art)
         self.articles.append(art)
 
     def clear_articles(self):
@@ -1196,6 +1196,11 @@ def CloudScholarClose():
     ScholarConf.AUTHORS.close()
     ScholarConf.BIBTEX.close()
 
+def ConfigIncrease(incr):
+    ScholarConf.CONFIG['skip'] += incr
+    with open('config.txt', 'w') as cfg:
+        json.dump(ScholarConf.CONFIG, cfg)
+
 def main():
     usage = """scholar.py [options] <query string>
 A command-line interface to Google Scholar.
@@ -1320,13 +1325,26 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     for i, line in enumerate(FileInput):
         if (i < config['skip']):
             continue
-        print '%06d/%06d (%10f%%)\t %s' % (i,lines,(float(i)/lines), line)
+        print '%06d/%06d (%10f%%)\t %s' % (i,lines,(float(i)/lines))
 
-        words = line.split('|')
+        try:
+            words = line.split('|')
+            title_regex = re.search("\'(.+?)\'", words[4])
+            title = title_regex.group(0).lstrip("\'").rstrip("\'")
+            print 'title \'%s\'' % (title)
 
-        title_regex = re.search("\'(.+?)\'", words[4])
-        title = title_regex.group(0).lstrip("\'").rstrip("\'")
-        print 'line %d - \'%s\'' % (i,title)
+            query.set_words(title)
+            html = querier.send_query(query)
+            if html is None:
+                print 'Got CAPTCHA, line %d' % i
+                print 'URL \'%s\'' % query.get_url()
+                sys.exit(1)
+        except Exception as ecp:
+            print ecp
+            ConfigIncrease(1)
+            saved['words'] = words
+            saved['article'] = None
+            saved['action'] = ACTION_SKIP
 
 
     CloudScholarClose()
