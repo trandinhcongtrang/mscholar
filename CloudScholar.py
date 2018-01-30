@@ -1422,7 +1422,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 if html is None:
                     print 'Got CAPTCHA, line %d' % i
                     print 'URL \'%s\'' % query.get_url()
-                    os.system('echo %s > url' % query.get_url())
+                    os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
                 else:
                     with open('./storage/%s.html' % words[2], 'w') as f:
@@ -1432,7 +1432,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 if querier.is_captcha(html) is not None:
                     print 'Got CAPTCHA, line %d' % i
                     print 'URL \'%s\'' % query.get_url()
-                    os.system('echo %s > url' % query.get_url())
+                    os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
                 # Parse articles
                 num_articles = len(querier.articles)
@@ -1451,7 +1451,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 if bibtex is None:
                     print 'Got CAPTCHA, line %d' % i
                     print 'URL \'%s\'' % article['url_citation']
-                    os.system('echo %s > url' % article['url_citation'])
+                    os.system('echo \'%s\' > url' % article['url_citation'])
                     sys.exit(1)
                 with open('./storage/%s.bibtex' % words[2], 'w') as f:
                     f.write(bibtex)
