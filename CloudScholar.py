@@ -1240,7 +1240,7 @@ def CloudScholarInit(data, skip):
             with open('config.txt', 'r') as cfg:
                 ScholarConf.CONFIG = json.load(cfg)
         except (IOError, ValueError) as e:
-            ScholarConf.CONFIG = {'skip': 1, 'start': 0}
+            ScholarConf.CONFIG = {'skip': 0, 'start': 0}
             with open('config.txt', 'w') as cfg:
                 json.dump(ScholarConf.CONFIG, cfg)
     print "Opening %s as input file" % data
