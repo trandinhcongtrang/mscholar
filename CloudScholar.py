@@ -252,8 +252,8 @@ class ScholarConf(object):
     # Let's update at this point (3/14):
     
     # Google Cloud Agent
-    USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'
-    # USER_AGENT ='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'
+    # USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0'
+    USER_AGENT ='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0'
 
     # If set, we will use this file to read/save cookies to enable
     # cookie use across sessions.
@@ -1420,7 +1420,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 query.set_words(title)
                 html = querier.send_query(query)
                 if html is None:
-                    print 'Got CAPTCHA, line %d' % i
+                    print 'empty response, line %d' % i
                     print 'URL \'%s\'' % query.get_url()
                     os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
@@ -1449,13 +1449,15 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     break
                 bibtex = querier.get_citation_data(article)
                 if bibtex is None:
-                    print 'Got CAPTCHA, line %d' % i
+                    print 'Got CAPTCHA/empty response, line %d' % i
                     print 'URL \'%s\'' % article['url_citation']
                     os.system('echo \'%s\' > url' % article['url_citation'])
                     sys.exit(1)
+
                 with open('./storage/%s.bibtex' % words[2], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
+                print '[line %d] Received %s.bibtex' % (i, words[2])
             except Exception as ecp:
                 print ecp
                 ConfigIncrease(1)
