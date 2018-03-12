@@ -1410,9 +1410,9 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 saved['action'] = 0
         else:
             try:
-                title_regex = re.search("\'(.+?)\'", words[4])
+                title_regex = re.search("\'(.+?)\'", words[3])
                 if title_regex is None:
-                    title = words[4]
+                    title = words[3]
                 else:
                     title = title_regex.group(0).lstrip("\'").rstrip("\'")
                 print 'title \'%s\'' % (title)
