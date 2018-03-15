@@ -522,9 +522,7 @@ if __name__ == '__main__':
 
         try:
             crawler = Crawler(start_urls[0], 5, options.instance)
-            print 'login'
             if crawler.login_portal() is not None:
-                print 'login done'
                 if options.year:
                     print 'Parse data from year %d' % config['year']
                     crawler.parse_year(config, complete)
