@@ -275,6 +275,11 @@ class Crawler(Spider):
             
             querries = ["\"%s\"" % paper_title, filtered_querry]
 
+            # Click dropdown
+            self.driver.find_element_by_xpath('//*[@id="searchrow1"]/td[2]/span').click()
+            # Select Title
+            self.driver.find_element_by_xpath('/html/body/span[34]/span/span[2]/ul[1]/li[2]').click()
+
             for querry in querries:
                 print querry
                 try:
@@ -297,38 +302,54 @@ class Crawler(Spider):
                         search.send_keys('%s' % paper_title)
                 
                         # Click Search Button
-                        self.driver.find_element_by_xpath('//*[@id="WOS_GeneralSearch_input_form_sb"]').click()
+                        self.driver.find_element_by_xpath('//*[@id="searchCell1"]/span[1]/button').click()
                         break
                     except Exception as exc:
+                        #print 'click search button'
+                        #print exc
                         self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
-
+                        #return
                 # try select pages
                 try:
                     # Select All pages
                     #self.driver.find_element_by_xpath('//div[@class="page-options-inner-left"]/ul/li[1]/input').click()
-                    self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[1]/input').click()
+                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[1]/input').click()
+                    self.driver.find_element_by_xpath('//*[@id="SelectPageChkId"]').click()
 
                     # Click to format arrow
-                    self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[3]/div/span/span/span[1]/span/span[2]').click()
-                    # Select save to orther format
+                    #print 'click format arrow'
+                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[3]/div/span/span/span[1]/span/span[2]').click()
+                    self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[3]/div/div/div/div[1]/ul/li[3]/div/span/span/span[1]/span[1]/span[2]').click()
+
+                    #print 'click save to other format'
+                    # Select save to other format
                     self.driver.find_element_by_xpath('//*[@id="select2-saveToMenu-results"]/li[5]').click()
                     
+                    #print 'click record content'
                     # Click Record Content
-                    self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-container"]').click()
+                    #self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-container"]').click()
+                    #self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/div[2]/span[1]/span[1]/span[1]/span[2]')
+                    self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/div[2]/span/span[1]/span').click()
+
+                    #self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-results"]/li[4]').click()
                     self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-results"]/li[4]').click()
 
+                    #print 'click file format'
                     # Click File Format
-                    self.driver.find_element_by_xpath('//*[@id="saveOptions"]').click()
+                    #self.driver.find_element_by_xpath('//*[@id="saveOptions"]').click()
+                    #self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[3]/div/div/span[1]/span[1]/span[1]/span[2]').click()
+                    #print 'click bibtex'
                     # click bibtex
                     self.driver.find_element_by_xpath('//*[@id="saveOptions"]/option[2]').click()
-
+                    #print 'click send result'
+                    
                     # Send result
-                    self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[4]/span/input').click()
+                    self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[4]/span').click()
                     self.sleep()
                     
                     # Press Close
-                    self.driver.find_element_by_xpath('//*[@id="page"]/div[9]/div[1]/button').click()
-
+                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[9]/div[1]/button').click()
+                    self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/a').click()
                     # Save the current result to another file
                     result_file = '%s.bib' % paper_id
                     print 'Copying result (savedrecs) to %s' % result_file
