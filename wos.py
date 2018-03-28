@@ -72,7 +72,7 @@ class Crawler(Spider):
 
     def move(self, src, dst):
         if src is not None:
-            os.popen('mv instance%d/downloads/%s instance%d/downloads/%s' % (self.__instance__, src, self.__instance__, dst))
+            os.popen('mv instance%d/downloads/%s storage/%s' % (self.__instance__, src, dst))
         else:
             with open(os.path.join('instance%d/downloads' % self.__instance__, dst), 'w'):
                 pass
@@ -109,9 +109,6 @@ class Crawler(Spider):
         self.driver.get(self.__login_page__)
         
         if self.__login_page__:
-            #
-            # self.driver.find_element_by_xpath('//*[@id="ebsco_widget"]/div/div/div/div/nav/div/ul/div[2]/div/button').click()
-
             # Click login old portal
             self.driver.find_element_by_xpath('//*[@id="bibapi_toggle"]').click()
             self.sleep()
@@ -123,22 +120,6 @@ class Crawler(Spider):
             password.send_keys('7UU2G6')
             self.driver.find_element_by_xpath('//*[@id="bibapi-panel"]/div/form/div[4]/button').click()
             self.sleep()
-
-            # Click A database
-            #self.driver.find_element_by_xpath('//*[@id="ebsco_widget"]/div/div/div/div/nav/div/ul/li[3]/a').click()
-            #self.sleep()
-
-            # Select WOS Core Collection
-            #self.driver.find_element_by_xpath('//*[@id="ebsco_widget"]/div/div/div/div/span/div/ul/li[17]/ul/li[2]').click()
-            #self.sleep()
-
-            # Close the login window
-            #self.driver.close()
-
-            #Switch to wos window
-            #self.driver.switch_to_window(self.driver.window_handles[0])
-            #print self.driver.window_handles
-            #self.driver.switch_to_window(self.driver.window_handles[-1])
             
             return "OK"
         else:
@@ -248,6 +229,24 @@ class Crawler(Spider):
         self.sleep()
         first = 1
         
+        retries = 2
+        while retries > 0:
+            try:
+                # Click dropdown
+                self.driver.find_element_by_xpath('//*[@id="searchrow1"]/td[2]/span').click()
+                # Select Title
+                self.driver.find_element_by_xpath('/html/body/span[34]/span/span[2]/ul[1]/li[2]').click()
+
+                break
+            except:
+                # Somethin wrong happen, go to home page
+                self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
+                retries -= 1
+        # end while retries > 0:
+        if retries == 0:
+            print 'ERROR: Cannot select basic search'
+            return
+        
         for (i, line) in enumerate(lines):
             if (i < config['skip']):
                 continue
@@ -257,117 +256,136 @@ class Crawler(Spider):
 
             # For each line
             # appln_id|year|pat_publn_id|npl_publn_id|npl_type|npl_biblio|npl_citn_seq_nr|title|journal|publisher|I|subfield|field|domain
-            terms = line.split('|')
-            paper_id = terms[3]
-            if os.path.isfile('instance%s/downloads/%s.bib' % (self.__instance__, paper_id)):
+            try:
+                terms = line.split('|')
+                paper_id = terms[3]
+                paper_year = terms[1]
+                if os.path.isfile('storage/%s.bib' % (paper_id)):
+                    continue
+
+                paper_title = (re.sub('\W+', ' ', terms[7])).lower()
+                word_tokens = word_tokenize(paper_title)
+                filtered_sentence = [w for w in word_tokens if not w in stop_words]
+                
+                if len(filtered_sentence[0]) < 3:
+                    filtered_querry = "%s*" % " ".join(filtered_sentence)
+                else:
+                    filtered_querry = "*%s*" % " ".join(filtered_sentence)
+                
+                if paper_year.strip() != '':
+                    advanced_querry1 = "TI=(%s) AND PY=(%s)" % (terms[7].lower(), paper_year)
+                    #advanced_querry2 = "TI=(%s) AND PY=(%s)" % (paper_title, paper_year)
+                else:
+                    advanced_querry1 = "TI=(%s)" % (terms[7].lower())
+                    #advanced_querry2 = "TI=(%s)" % (paper_title)
+                #querries = [advanced_querry1, advanced_querry2, "\"%s\"" % paper_title, filtered_querry]
+                querries = [advanced_querry1]
+            except Exception as exc:
+                print 'line %s failed' % i
+                print exc
                 continue
 
-            paper_title = (re.sub('\W+', ' ', terms[7])).lower()
-            word_tokens = word_tokenize(paper_title)
-            filtered_sentence = [w for w in word_tokens if not w in stop_words]
-            #print "filtered_sentence = "
-            #print filtered_sentence
-            if len(filtered_sentence[0]) <3:
-                filtered_querry = "%s*" % " ".join(filtered_sentence)
-            else:
-                filtered_querry = "*%s*" % " ".join(filtered_sentence)
-            #print paper_title
-            
-            querries = ["\"%s\"" % paper_title, filtered_querry]
+            try:
+                # Clear search history
+                self.driver.find_element_by_xpath('//*[@id="skip-to-navigation"]/ul[2]/li[2]/a').click()
 
-            # Click dropdown
-            self.driver.find_element_by_xpath('//*[@id="searchrow1"]/td[2]/span').click()
-            # Select Title
-            self.driver.find_element_by_xpath('/html/body/span[34]/span/span[2]/ul[1]/li[2]').click()
+                # Select all
+                #self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[1]').click()
+                self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/button[1]').click()
+                
+                # Delete all
+                #self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[2]').click()
+                self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/button[2]/i').click()
+                # Back to search
+                self.driver.find_element_by_xpath('//*[@id="skip-to-navigation"]/ul[1]/li/a').click()
+            except Exception as exc:
+                self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
 
-            for querry in querries:
+            for (j, querry) in enumerate(querries):
                 print querry
-                try:
-                    if (i % 100) == 0:
-                        # Clear search history
-                        self.driver.find_element_by_xpath('//*[@id="skip-to-navigation"]/ul[2]/li[2]/a').click()
 
-                        # Select all
-                        self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[1]').click()
-
-                        # Delete all
-                        self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[2]').click()
-                except Exception as exc:
-                    pass
-                while True:
+                if j <= 1: # do advance search: index 0, 1
                     try:
-                        # Do Basic search
+                        # Select advance search:
+                        self.driver.find_element_by_xpath('/html/body/div[7]/div/ul/li[3]/a').click()
+
+                        # send querry
                         search = self.driver.find_element_by_xpath('//*[@id="value(input1)"]')
                         search.clear()
-                        search.send_keys('%s' % paper_title)
-                
-                        # Click Search Button
-                        self.driver.find_element_by_xpath('//*[@id="searchCell1"]/span[1]/button').click()
-                        break
+                        search.send_keys('%s' % querry)
+
+                        # click search button
+                        self.driver.find_element_by_xpath('//*[@id="search-button"]').click()
+
+                        # click results
+                        self.driver.find_element_by_xpath('//*[@id="set_%d_div"]/a' % (j+1)).click()
                     except Exception as exc:
-                        #print 'click search button'
                         #print exc
-                        self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
-                        #return
+                        print 'advance search not found'
+                        continue
+                else: # do basic search: index 2, 3
+                    while True:
+                        try:
+                            # Select basic search:
+                            self.driver.find_element_by_xpath('/html/body/div[7]/div/ul/li[1]/a').click()
+
+                            # Do Basic search
+                            search = self.driver.find_element_by_xpath('//*[@id="value(input1)"]')
+                            search.clear()
+                            search.send_keys('%s' % querry)
+                    
+                            # Click Search Button
+                            self.driver.find_element_by_xpath('//*[@id="searchCell1"]/span[1]/button').click()
+                            break
+                        except Exception as exc:
+                            # print exc
+                            self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
+
                 # try select pages
                 try:
                     # Select All pages
-                    #self.driver.find_element_by_xpath('//div[@class="page-options-inner-left"]/ul/li[1]/input').click()
-                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[1]/input').click()
                     self.driver.find_element_by_xpath('//*[@id="SelectPageChkId"]').click()
 
                     # Click to format arrow
-                    #print 'click format arrow'
-                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[2]/div/div/div/div[1]/ul/li[3]/div/span/span/span[1]/span/span[2]').click()
                     self.driver.find_element_by_xpath('//*[@id="page"]/div[1]/div[25]/div[2]/div/div/div/div[2]/div[3]/div[3]/div/div/div/div[1]/ul/li[3]/div/span/span/span[1]/span[1]/span[2]').click()
 
-                    #print 'click save to other format'
                     # Select save to other format
                     self.driver.find_element_by_xpath('//*[@id="select2-saveToMenu-results"]/li[5]').click()
                     
-                    #print 'click record content'
                     # Click Record Content
-                    #self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-container"]').click()
-                    #self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/div[2]/span[1]/span[1]/span[1]/span[2]')
                     self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/div[2]/span/span[1]/span').click()
 
                     #self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-results"]/li[4]').click()
                     self.driver.find_element_by_xpath('//*[@id="select2-bib_fields-results"]/li[4]').click()
 
-                    #print 'click file format'
                     # Click File Format
-                    #self.driver.find_element_by_xpath('//*[@id="saveOptions"]').click()
-                    #self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[3]/div/div/span[1]/span[1]/span[1]/span[2]').click()
-                    #print 'click bibtex'
                     # click bibtex
                     self.driver.find_element_by_xpath('//*[@id="saveOptions"]/option[2]').click()
-                    #print 'click send result'
                     
                     # Send result
                     self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[4]/span').click()
                     self.sleep()
                     
                     # Press Close
-                    #self.driver.find_element_by_xpath('//*[@id="page"]/div[9]/div[1]/button').click()
                     self.driver.find_element_by_xpath('//*[@id="ui-id-7"]/form/div[2]/a').click()
+                    
                     # Save the current result to another file
                     result_file = '%s.bib' % paper_id
-                    print 'Copying result (savedrecs) to %s' % result_file
+                    print 'Copying result (savedrecs) to storage/%s' % result_file
                     self.move("savedrecs.bib", result_file)
-                    if os.path.isfile('instance%s/downloads/%s.notfound' % (self.__instance__, paper_id)):
-                        os.popen('rm -f instance%s/downloads/%s.notfound' % (self.__instance__, paper_id))
+                    #if os.path.isfile('instance%s/downloads/%s.notfound' % (self.__instance__, paper_id)):
+                    #    os.popen('rm -f instance%s/downloads/%s.notfound' % (self.__instance__, paper_id))
+                    #print 'found by querry %d' % j
                     # Break out of querries
-                    #self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
                     self.driver.execute_script("window.history.go(-1)")
                     break
-                    # Delete search history
-                    #self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[1]').click()
-                    #self.driver.find_element_by_xpath('/html/body/div[1]/div[25]/form/table/tbody/tr[1]/th[6]/div[2]/input[2]').click()
-
+                    
                 except Exception as exp:
+                    pass
                     #print exp
-                    print 'title not found'
-                    self.move(None, "%s.notfound" % paper_id)
+                    #print 'title not found'
+                    #print 'basic search querry %d notfound' % j
+                    #self.move(None, "%s.notfound" % paper_id)
                     #self.driver.get("http://apps.webofknowledge.com.inshs.bib.cnrs.fr/")
 
             print ' line %d done' % i
@@ -380,7 +398,7 @@ class Crawler(Spider):
         # Repeat
         print "END"
         complete = True
-        #self.driver.close()
+        self.driver.close()
 
     def parse(self, inputfile, config, complete):
 
@@ -552,7 +570,7 @@ if __name__ == '__main__':
                     crawler.parse_title(options.input, config, complete)
                 else:
                     crawler.parse(options.input, config, complete)
-            crawler.driver.close()
+            #crawler.driver.close()
         except Exception as exp:
             print exp
             print 'Failed at line %d' %config['skip']
@@ -562,7 +580,7 @@ if __name__ == '__main__':
             else:
                 failed_line = config['skip']
             print 'Closing chromedriver'
-            crawler.driver.close()
+            #crawler.driver.close()
         if complete is True:
             break
         if restart is False:
