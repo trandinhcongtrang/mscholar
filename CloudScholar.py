@@ -1393,9 +1393,9 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         if (i < config['skip']):
             continue
         print 'line %d/%d (%6f%%)\t' % (i,lines,(float(i+1)/lines)*100)
-        words = line.split('|')
+        words = line.split('\\')
 
-        if ((saved['words'] is not None) and (saved['words'][2] == words[2])):
+        if ((saved['words'] is not None) and (saved['words'][1] == words[1])):
             if saved['action'] == ACTION_SAVE:
                 print 'Action: SAVE. This keyword already has data.'
                 article = saved['article']
@@ -1410,11 +1410,12 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 saved['action'] = 0
         else:
             try:
-                title_regex = re.search("\'(.+?)\'", words[3])
-                if title_regex is None:
-                    title = words[3]
-                else:
-                    title = title_regex.group(0).lstrip("\'").rstrip("\'")
+                #title_regex = re.search("\'(.+?)\'", words[3])
+                #if title_regex is None:
+                #    title = words[3]
+                #else:
+                #    title = title_regex.group(0).lstrip("\'").rstrip("\'")
+                title = words[1].strip()
                 print 'title \'%s\'' % (title)
 
                 query.set_words(title)
@@ -1425,8 +1426,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
                 else:
-                    with open('./storage/%s.html' % words[2], 'w') as f:
-                        f.write(html)
+                    #with open('./storage/%s.html' % words[2], 'w') as f:
+                    #    f.write(html)
                     querier.parse(html)
 
                 if querier.is_captcha(html) is not None:
@@ -1454,10 +1455,10 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     os.system('echo \'%s\' > url' % article['url_citation'])
                     sys.exit(1)
 
-                with open('./storage/%s.bibtex' % words[2], 'w') as f:
+                with open('./storage/%s.bibtex' % words[0], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
-                print '[line %d] Received %s.bibtex' % (i, words[2])
+                print '[line %d] Received %s.bibtex' % (i, words[0])
             except Exception as ecp:
                 print ecp
                 ConfigIncrease(1)
@@ -1467,10 +1468,10 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 continue
         if article.citation_data is not '':
             article_data = article.as_myformat()
-            FileArticles.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
+            FileArticles.write("%s|%s|%s\n" % (words[0].strip(), words[1].strip(), article_data))
             authors = article.as_attr("author").split(" and ")
             for aut in authors:
-                FileAuthors.write("%s|%s\n" % (words[2], aut))
+                FileAuthors.write("%s|%s\n" % (words[0], aut))
             
             FileBibtex.write(article.as_citation() + '\n--\n')
             ConfigIncrease(1)
