@@ -1503,8 +1503,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 article.set_citation_data(bibtex)
                 print '[line %d] Received %s.bibtex' % (i, words[0])
             except Exception as ecp:
-                print 'exception pos 2'
-                print ecp
+                #print 'exception pos 2'
+                #print ecp
                 ConfigIncreaseSave(1)
                 #saved['words'] = words
                 #saved['article'] = None
