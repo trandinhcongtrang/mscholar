@@ -1422,6 +1422,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
             continue
         print 'line %d/%d (%6f%%)\t' % (i,lines,(float(i+1)/lines)*100)
         words = line.split('\\')
+
         article = None
         captcha_counter = 0
         while True:
@@ -1437,8 +1438,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
                 else:
-                    with open('./storage/%s.html' % words[0], 'w') as f:
-                        f.write(html)
+                    #with open('./storage/%s.html' % words[2], 'w') as f:
+                    #    f.write(html)
                     querier.parse(html)
 
                 if querier.is_captcha(html) is not None:
@@ -1513,6 +1514,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         # End else
         if article is not None and article.citation_data is not '':
             article_data = article.as_myformat()
+
             if article_data is not None:
                 FileArticles.write("%s|%s|%s\n" % (words[0], words[1], article_data))
             authors = article.as_attr("author").split(" and ")
