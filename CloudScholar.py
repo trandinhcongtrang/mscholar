@@ -162,7 +162,7 @@ page. It is not a recursive crawler.
 # POSSIBILITY OF SUCH DAMAGE.
 
 import optparse
-import os
+import os, subprocess
 import re
 import sys
 import warnings
@@ -1039,6 +1039,24 @@ class ScholarQuerier(object):
         self.opener = build_opener(HTTPCookieProcessor(self.cjar))
         self.settings = None # Last settings object, if any
 
+    def reload_cookie(self):
+        cmd = "./get_cookies.sh"
+        theproc = subprocess.Popen(cmd, shell = True, stdout=subprocess.PIPE)
+        theproc.wait()
+
+        if ScholarConf.COOKIE_JAR_FILE and \
+           os.path.exists(ScholarConf.COOKIE_JAR_FILE):
+            try:
+                self.cjar.load(ScholarConf.COOKIE_JAR_FILE,
+                               ignore_discard=True)
+                ScholarUtils.log('info', 'loaded cookies file')
+            except Exception as msg:
+                ScholarUtils.log('warn', 'could not load cookies file: %s' % msg)
+                self.cjar = MozillaCookieJar() # Just to be safe
+
+        self.opener = build_opener(HTTPCookieProcessor(self.cjar))
+        self.settings = None # Last settings object, if any
+
     def apply_settings(self, settings):
         """
         Applies settings as provided by a ScholarSettings instance.
@@ -1263,11 +1281,20 @@ def CloudScholarClose():
     ScholarConf.AUTHORS.close()
     ScholarConf.BIBTEX.close()
 
-def ConfigIncrease(incr):
+def ConfigIncreaseSave(incr):
     ScholarConf.CONFIG['skip'] += incr
     with open('config.txt', 'w') as cfg:
         json.dump(ScholarConf.CONFIG, cfg)
 
+def get_input():
+    print "Please use vnc to solve captcha\ntype y to continue when captcha has resolved\ntype q to quit\n type s to skip: "
+    print "Your choice (y/s/q): "
+    while True:
+        answer = input(" ")
+        if answer == 'y' or answer == 's' or answer == 'q':
+            break
+        print "Your choice (y/s/q): "
+    return answer
 
 def main():
     usage = """scholar.py [options] <query string>
@@ -1376,6 +1403,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     settings = ScholarSettings()
     settings.set_citation_format(ScholarSettings.CITFORM_BIBTEX)
     querier.apply_settings(settings)
+    querier.reload_cookie()
 
     query = SearchScholarQuery()
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
@@ -1393,28 +1421,12 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         if (i < config['skip']):
             continue
         print 'line %d/%d (%6f%%)\t' % (i,lines,(float(i+1)/lines)*100)
-        words = line.split('|')
-
-        if ((saved['words'] is not None) and (saved['words'][2] == words[2])):
-            if saved['action'] == ACTION_SAVE:
-                print 'Action: SAVE. This keyword already has data.'
-                article = saved['article']
-            elif saved['action'] == ACTION_SKIP:
-                print 'Action: SKIP. This keyword has 0 result.'
-                ConfigIncrease(1)
-                continue
-            else :
-                print 'Action: Unknown. Reset saved data.'
-                saved['words'] = None
-                saved['article'] = None
-                saved['action'] = 0
-        else:
+        words = line.split('\\')
+        article = None
+        captcha_counter = 0
+        while True:
             try:
-                title_regex = re.search("\'(.+?)\'", words[3])
-                if title_regex is None:
-                    title = words[3]
-                else:
-                    title = title_regex.group(0).lstrip("\'").rstrip("\'")
+                title = words[1].lstrip().rstrip()
                 print 'title \'%s\'' % (title)
 
                 query.set_words(title)
@@ -1425,15 +1437,26 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     os.system('echo \'%s\' > url' % query.get_url())
                     sys.exit(1)
                 else:
-                    with open('./storage/%s.html' % words[2], 'w') as f:
+                    with open('./storage/%s.html' % words[0], 'w') as f:
                         f.write(html)
                     querier.parse(html)
 
                 if querier.is_captcha(html) is not None:
                     print 'Got CAPTCHA, line %d' % i
                     print 'URL \'%s\'' % query.get_url()
-                    os.system('echo \'%s\' > url' % query.get_url())
-                    sys.exit(1)
+                    captcha_counter = captcha_counter + 1
+                    if captcha_counter >= 2:
+                        print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
+                    answer = get_input()
+                    if answer == 'y':
+                        querier.reload_cookie()
+                        continue
+                    elif answer == 'q':
+                        exit(0) # quit application
+                    elif answer == 's':
+                        break # break the while loop
+                    #os.system('echo \'%s\' > url' % query.get_url())
+                    # sys.exit(1)
                 # Parse articles
                 num_articles = len(querier.articles)
                 if num_articles > 5:
@@ -1441,47 +1464,66 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     saved['words'] = words
                     saved['article'] = None
                     saved['action'] = ACTION_SKIP
-                    ConfigIncrease(1)
-                    continue
-                article = querier.articles[0]
+                    ConfigIncreaseSave(1)
+                    break
+                try:
+                    article = querier.articles[0]
+                except Exception as exc:
+                    print ' empty response '
+                    article = None
+                    ConfigIncreaseSave(1)
+                    break
                 if article['url_citation'] is None:
                     print 'url_citation is None, check settings & Cookie'
+                    ConfigIncreaseSave(1)
                     break
+                #print article['url_citation']
                 bibtex = querier.get_citation_data(article)
                 if bibtex is None:
                     print 'Got CAPTCHA/empty response, line %d' % i
-                    print 'URL \'%s\'' % article['url_citation']
+                    #print 'URL \'%s\'' % article['url_citation']
                     os.system('echo \'%s\' > url' % article['url_citation'])
-                    sys.exit(1)
+                    #sys.exit(1)
+                    captcha_counter = captcha_counter + 1
+                    if captcha_counter >= 2:
+                        print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
+                    answer = get_input()
+                    if answer == 'y':
+                        querier.reload_cookie()
+                        continue
+                    elif answer == 'q':
+                        exit(0) # quit application
+                    elif answer == 's':
+                        ConfigIncreaseSave(1)
+                        break # break the while loop
 
-                with open('./storage/%s.bibtex' % words[2], 'w') as f:
+                with open('./storage/%s.bibtex' % words[0], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
-                print '[line %d] Received %s.bibtex' % (i, words[2])
+                print '[line %d] Received %s.bibtex' % (i, words[0])
             except Exception as ecp:
+                print 'exception pos 2'
                 print ecp
-                ConfigIncrease(1)
+                ConfigIncreaseSave(1)
                 saved['words'] = words
                 saved['article'] = None
                 saved['action'] = ACTION_SKIP
-                continue
-        if article.citation_data is not '':
+            break
+            # end while true
+        # End else
+        if article is not None and article.citation_data is not '':
             article_data = article.as_myformat()
-            FileArticles.write("%s|%s|%s|%s|%s\n" % (words[0], words[1], words[2], words[3], article_data))
+            if article_data is not None:
+                FileArticles.write("%s|%s|%s\n" % (words[0], words[1], article_data))
             authors = article.as_attr("author").split(" and ")
             for aut in authors:
-                FileAuthors.write("%s|%s\n" % (words[2], aut))
+                FileAuthors.write("%s|%s\n" % (words[0], aut))
             
             FileBibtex.write(article.as_citation() + '\n--\n')
-            ConfigIncrease(1)
+            ConfigIncreaseSave(1)
             FileArticles.flush()
             FileBibtex.flush()
             FileAuthors.flush()
-        else:
-            print 'no citation data, exit check captcha'
-        saved['words'] = words
-        saved['article'] = article
-        saved['action'] = ACTION_SAVE
 
     CloudScholarClose()
     if options.cookie_file or ScholarConf.COOKIE_JAR_FILE:
