@@ -1409,9 +1409,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
     (config, FileInput, FileArticles, FileBibtex, FileAuthors) = CloudScholarInit(options.input, options.skip)
     # ---------------------
-    #saved = {'words': None, 'article': None, 'action': 0}
-    #ACTION_SAVE = 1
-    #ACTION_SKIP = 2
     print 'Skip to line %d' % config['skip']
     # ---------------------
     lines = sum(1 for line in FileInput)
@@ -1450,21 +1447,15 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        #querier.reload_cookie()
                         continue
                     elif answer == 'q':
                         exit(0) # quit application
                     elif answer == 's':
                         break # break the while loop
-                    #os.system('echo \'%s\' > url' % query.get_url())
-                    # sys.exit(1)
                 # Parse articles
                 num_articles = len(querier.articles)
-                if num_articles > 5:
+                if num_articles > 1:
                     print 'skip this item %d %s' % (len(querier.articles), 'unlikely correct title')
-                    #saved['words'] = words
-                    #aved['article'] = None
-                    #saved['action'] = ACTION_SKIP
                     ConfigIncreaseSave(1)
                     break
                 try:
@@ -1490,7 +1481,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        #querier.reload_cookie()
                         continue
                     elif answer == 'q':
                         exit(0) # quit application
@@ -1503,12 +1493,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 article.set_citation_data(bibtex)
                 print '[line %d] Received %s.bibtex' % (i, words[0])
             except Exception as ecp:
-                #print 'exception pos 2'
-                #print ecp
                 ConfigIncreaseSave(1)
-                #saved['words'] = words
-                #saved['article'] = None
-                #saved['action'] = ACTION_SKIP
             break
             # end while true
         # End else
