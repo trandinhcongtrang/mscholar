@@ -1040,8 +1040,8 @@ class ScholarQuerier(object):
         self.settings = None # Last settings object, if any
 
     def reload_cookie(self):
-        cmd = "./get_cookies.sh"
-        theproc = subprocess.Popen(cmd, shell = True, stdout=subprocess.PIPE)
+        cmd = "echo \"select host, case when host glob '.*' then 'TRUE' else 'FALSE' end, path, case when isSecure then 'TRUE' else 'FALSE' end, expiry, name, value from moz_cookies;\" | sqlite3 -separator \"\t\" ~/.mozilla/firefox/*.default/cookies.sqlite > cookies.entries && cat cookies.template cookies.entries > cookies.txt"
+        theproc = subprocess.Popen(cmd, shell = True)
         theproc.wait()
 
         if ScholarConf.COOKIE_JAR_FILE and \
@@ -1287,7 +1287,7 @@ def ConfigIncreaseSave(incr):
         json.dump(ScholarConf.CONFIG, cfg)
 
 def get_input():
-    print "==============================================================="
+    print "\n==============================================================="
     print "Please use vnc to solve captcha\ntype y to continue when captcha has resolved\ntype q to quit\n type s to skip: "
     while True:
         answer = raw_input("Your choice (y/s/q): ")
@@ -1405,7 +1405,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     settings = ScholarSettings()
     settings.set_citation_format(ScholarSettings.CITFORM_BIBTEX)
     querier.apply_settings(settings)
-    #querier.reload_cookie()
 
     query = SearchScholarQuery()
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
@@ -1426,6 +1425,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         captcha_counter = 0
         while True:
             try:
+                querier.reload_cookie()
                 title = words[1].lstrip().rstrip()
                 print 'title \'%s\'' % (title)
 
