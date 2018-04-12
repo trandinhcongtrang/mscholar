@@ -1296,6 +1296,9 @@ def get_input():
         print "Your choice (y/s/q): "
     return answer
 
+class ContinueCaptcha(Exception): pass
+
+
 def main():
     usage = """scholar.py [options] <query string>
 A command-line interface to Google Scholar.
@@ -1447,7 +1450,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        continue
+                        raise ContinueCaptcha
                     elif answer == 'q':
                         exit(0) # quit application
                     elif answer == 's':
@@ -1481,7 +1484,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        continue
+                        raise ContinueCaptcha
                     elif answer == 'q':
                         exit(0) # quit application
                     elif answer == 's':
@@ -1492,6 +1495,8 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
                 print '[line %d] Received %s.bibtex' % (i, words[0])
+            except ContinueCaptcha:
+                continue
             except Exception as ecp:
                 ConfigIncreaseSave(1)
             break
