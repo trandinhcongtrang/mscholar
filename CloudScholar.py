@@ -1287,13 +1287,12 @@ def ConfigIncreaseSave(incr):
         json.dump(ScholarConf.CONFIG, cfg)
 
 def get_input():
+    print "==============================================================="
     print "Please use vnc to solve captcha\ntype y to continue when captcha has resolved\ntype q to quit\n type s to skip: "
-    print "Your choice (y/s/q): "
     while True:
-        answer = input(" ")
+        answer = raw_input("Your choice (y/s/q): ")
         if answer == 'y' or answer == 's' or answer == 'q':
             break
-        print "Your choice (y/s/q): "
     return answer
 
 class ContinueCaptcha(Exception): pass
@@ -1490,7 +1489,6 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                     elif answer == 's':
                         ConfigIncreaseSave(1)
                         break # break the while loop
-
                 with open('./storage/%s.bibtex' % words[0], 'w') as f:
                     f.write(bibtex)
                 article.set_citation_data(bibtex)
