@@ -1403,15 +1403,15 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
     settings = ScholarSettings()
     settings.set_citation_format(ScholarSettings.CITFORM_BIBTEX)
     querier.apply_settings(settings)
-    querier.reload_cookie()
+    #querier.reload_cookie()
 
     query = SearchScholarQuery()
     query.set_num_page_results(ScholarConf.MAX_PAGE_RESULTS)
     (config, FileInput, FileArticles, FileBibtex, FileAuthors) = CloudScholarInit(options.input, options.skip)
     # ---------------------
-    saved = {'words': None, 'article': None, 'action': 0}
-    ACTION_SAVE = 1
-    ACTION_SKIP = 2
+    #saved = {'words': None, 'article': None, 'action': 0}
+    #ACTION_SAVE = 1
+    #ACTION_SKIP = 2
     print 'Skip to line %d' % config['skip']
     # ---------------------
     lines = sum(1 for line in FileInput)
@@ -1450,7 +1450,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        querier.reload_cookie()
+                        #querier.reload_cookie()
                         continue
                     elif answer == 'q':
                         exit(0) # quit application
@@ -1462,9 +1462,9 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 num_articles = len(querier.articles)
                 if num_articles > 5:
                     print 'skip this item %d %s' % (len(querier.articles), 'unlikely correct title')
-                    saved['words'] = words
-                    saved['article'] = None
-                    saved['action'] = ACTION_SKIP
+                    #saved['words'] = words
+                    #aved['article'] = None
+                    #saved['action'] = ACTION_SKIP
                     ConfigIncreaseSave(1)
                     break
                 try:
@@ -1490,7 +1490,7 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                         print 'This line got captcha %d times, you might want to skip this line' % captcha_counter
                     answer = get_input()
                     if answer == 'y':
-                        querier.reload_cookie()
+                        #querier.reload_cookie()
                         continue
                     elif answer == 'q':
                         exit(0) # quit application
@@ -1506,9 +1506,9 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
                 print 'exception pos 2'
                 print ecp
                 ConfigIncreaseSave(1)
-                saved['words'] = words
-                saved['article'] = None
-                saved['action'] = ACTION_SKIP
+                #saved['words'] = words
+                #saved['article'] = None
+                #saved['action'] = ACTION_SKIP
             break
             # end while true
         # End else
