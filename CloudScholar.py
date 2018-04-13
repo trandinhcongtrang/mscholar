@@ -171,6 +171,8 @@ from random import randint
 from time import sleep
 import json
 import bibtexparser
+import socket
+HOSTNAME=socket.gethostname()
 
 try:
     # Try importing for Python 3
@@ -1288,7 +1290,8 @@ def ConfigIncreaseSave(incr):
 
 def get_input():
     print "\n==============================================================="
-    print "Please use vnc to solve captcha\ntype y to continue when captcha has resolved\ntype q to quit\n type s to skip: "
+    print "Please use vnc to connect \"%s\"" for resolving captcha" % HOSTNAME
+    print " type y to continue when captcha has resolved\n type q to quit\n type s to skip: "
     while True:
         answer = raw_input("Your choice (y/s/q): ")
         if answer == 'y' or answer == 's' or answer == 'q':
