@@ -1290,7 +1290,7 @@ def ConfigIncreaseSave(incr):
 
 def get_input():
     print "\n==============================================================="
-    print "Please use vnc to connect \"%s\"" for resolving captcha" % HOSTNAME
+    print "Please use vnc to connect \"%s\" for resolving captcha" % HOSTNAME
     print " type y to continue when captcha has resolved\n type q to quit\n type s to skip: "
     while True:
         answer = raw_input("Your choice (y/s/q): ")
